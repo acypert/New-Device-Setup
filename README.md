@@ -20,6 +20,10 @@ Import into iTerm
 
 [One Dark](./OneDark.itermcolors)
 
+### Open new tabs in the same directory
+Settings > Profiles > General > Working Directory > Reuse previous session's directory
+
+
 ## Update/install git
 ```bash
 brew install git
