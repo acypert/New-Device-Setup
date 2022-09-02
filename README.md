@@ -16,11 +16,9 @@ brew install --cask iterm2
 [iTerm2 homepage](https://iterm2.com/features.html)
 
 ### Theme: One Dark
-1. Clone from https://github.com/mbadolato/iTerm2-Color-Schemes
-2. Install One Dark
-    ```bash
-    
-    ```
+Import into iTerm
+
+[One Dark](./OneDark.itermcolors)
 
 ## Update/install git
 ```bash
@@ -34,6 +32,6 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 [oh-my-zsh](https://ohmyz.sh/)
 
 ### Theme: ac (derived from afowler)
-
 Add to `~/.oh-my-zsh/themes
-[ac](./ac.zsh-themes)
+
+[ac](./ac.zsh-theme)
