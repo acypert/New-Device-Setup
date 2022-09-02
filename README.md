@@ -23,11 +23,20 @@ Import into iTerm
 ### Open new tabs in the same directory
 Settings > Profiles > General > Working Directory > Reuse previous session's directory
 
+### Jetbrains Mono font
+[JetBrains Mono](https://github.com/JetBrains/JetBrainsMono)
+
+```bash
+brew tap homebrew/cask-fonts
+brew install --cask font-jetbrains-mono
+```
+
 
 ## Update/install git
 ```bash
 brew install git
 ```
+
 
 ## oh-my-zsh
 ```bash
