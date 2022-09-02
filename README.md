@@ -32,6 +32,6 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 [oh-my-zsh](https://ohmyz.sh/)
 
 ### Theme: ac (derived from afowler)
-Add to `~/.oh-my-zsh/themes
+Add to `~/.oh-my-zsh/themes`
 
 [ac](./ac.zsh-theme)
