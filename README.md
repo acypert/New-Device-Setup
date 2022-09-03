@@ -108,18 +108,29 @@ Add to `~/.oh-my-zsh/themes`
     source ~/.zshrc
     ```
     
-    
-## fnm
+## CLI Tools
+### fnm
 [install script](https://github.com/Schniz/fnm#using-a-script-macoslinux)
 ```bash
 curl -fsSL https://fnm.vercel.app/install | bash
 source ~/.zshrc
 ```
 
-
-## sdkman!
+### sdkman!
 [install page](https://sdkman.io/install)
 ```bash
 curl -s "https://get.sdkman.io" | bash
 source ~/.zshrc
+```
+
+### HTTPie
+[HTTPie](https://httpie.io/)
+```bash
+brew install httpie
+```
+
+### bat: a `cat` clone with syntax highlighting and Git integration
+[bat](https://github.com/sharkdp/bat)
+```bash
+brew install bat
 ```
