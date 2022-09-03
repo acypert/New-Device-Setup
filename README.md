@@ -113,6 +113,7 @@ Add to `~/.oh-my-zsh/themes`
 [install script](https://github.com/Schniz/fnm#using-a-script-macoslinux)
 ```bash
 curl -fsSL https://fnm.vercel.app/install | bash
+eval "$(fnm env --use-on-cd)" >> ~/.zshrc
 source ~/.zshrc
 ```
 
