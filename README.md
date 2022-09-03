@@ -39,8 +39,12 @@ Settings > Profiles > General > Working Directory > Reuse previous session's dir
 brew tap homebrew/cask-fonts
 brew install --cask font-jetbrains-mono
 ```
-
 iTerm > Preferences > Profiles > Text > Font > JetBrains Mono
+
+### New Window Size
+`125 x 30`
+
+iTerm > Preferences > Profiles > Window > Settings for New Windows
 
 
 ## Update/install git
