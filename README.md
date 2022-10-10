@@ -20,6 +20,14 @@ Import into iTerm
 
 [One Dark](./OneDark.itermcolors)
 
+### Hotkey Window
+1. Open Preferences (CMD+,)
+1. General > Startup > Window restoration policy > Only Restore Hotkey Window
+1. Profiles > Window > Style: Full-Width Bottom of Screen, Screen: Screen with Cursor, Space: All Spaces
+1. Profiles > Keys > Check "A hotkey opens a dedicated window with this profile."
+1. Click Configure Hotkey Window > Set Hotkey (CMD+`) > Animate showing and hiding, Floating window
+1. On Dock icon click: Show this Hotkey Window if no other window is open
+
 ### Open new tabs in the same directory
 Settings > Profiles > General > Working Directory > Reuse previous session's directory
 
