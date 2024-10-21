@@ -76,7 +76,8 @@ sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.
 [oh-my-zsh](https://ohmyz.sh/)
 
 ### Theme: ac (derived from afowler)
-Add to `~/.oh-my-zsh/themes`
+1. Add to `~/.oh-my-zsh/themes`
+1. Open ~/.zshrc > set `ZSH_THEME="ac"`
 
 [ac](./ac.zsh-theme)
 [more themes if desired](https://github.com/mbadolato/iTerm2-Color-Schemes)
