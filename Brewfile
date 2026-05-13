@@ -4,6 +4,7 @@ brew "gh"
 brew "git"
 brew "httpie"
 brew "pyenv"
+brew "tmux"
 
 cask "font-jetbrains-mono"
 cask "iterm2"

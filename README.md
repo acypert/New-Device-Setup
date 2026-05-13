@@ -49,6 +49,7 @@ Most apps and CLI tools live in `Brewfile`:
 - `gh`
 - `fnm`
 - `pyenv`
+- `tmux`
 - `httpie`
 - `bat`
 - iTerm2

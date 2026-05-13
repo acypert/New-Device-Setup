@@ -30,6 +30,7 @@ check_command omx
 check_command http
 check_command bat
 check_command pyenv
+check_command tmux
 check_command code
 
 check_path "$HOME/.oh-my-zsh"
