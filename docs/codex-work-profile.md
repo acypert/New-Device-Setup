@@ -20,6 +20,9 @@ The script adds:
 - `[profiles.work]`
 - work-only `developer_instructions`
 
+It also sets the same work provider, model, and developer instructions at the
+top level of `~/.codex/config.toml`, so plain `codex` uses the work setup.
+
 It does not store an API key.
 
 ## Authenticate
@@ -31,7 +34,7 @@ Codex.
 read -rsp "LiteLLM API key: " LITELLM_API_KEY
 printf "\n"
 export LITELLM_API_KEY
-codex --profile work
+codex
 ```
 
 For a persistent machine-specific setup, put the export in a private shell file
@@ -41,19 +44,19 @@ If your LiteLLM setup requires Codex's credential store instead of an env var,
 you can also run:
 
 ```bash
-printf "%s" "$LITELLM_API_KEY" | codex --profile work login --with-api-key
-codex --profile work login status
+printf "%s" "$LITELLM_API_KEY" | codex login --with-api-key
+codex login status
 ```
 
 ## Use
 
-Start personal/default Codex:
+Start Codex with the work defaults:
 
 ```bash
 codex
 ```
 
-Start work Codex:
+You can still address the named work profile explicitly:
 
 ```bash
 codex --profile work
@@ -63,4 +66,11 @@ To preview the TOML block without writing it:
 
 ```bash
 ./scripts/codex-profile.sh work --print
+```
+
+If you ever need to install only the named profile without changing what plain
+`codex` does:
+
+```bash
+./scripts/codex-profile.sh work --profile-only
 ```

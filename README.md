@@ -133,10 +133,10 @@ export CODEX_WORK_LITELLM_MODEL="YOUR-LITELLM-MODEL-ALIAS"
 ./scripts/codex-profile.sh work
 ```
 
-Then launch work sessions with:
+Then launch work sessions normally:
 
 ```bash
-codex --profile work
+codex
 ```
 
 See [`docs/codex-work-profile.md`](docs/codex-work-profile.md) for the LiteLLM
