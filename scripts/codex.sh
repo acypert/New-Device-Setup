@@ -1,23 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ensure_node() {
-  if command -v npm >/dev/null 2>&1; then
-    return
-  fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-  if ! command -v fnm >/dev/null 2>&1; then
-    printf "npm is not available and fnm is not installed. Run bootstrap.sh or install fnm first.\n" >&2
-    exit 1
-  fi
-
-  eval "$(fnm env --shell bash)"
-  fnm install --lts --use
-
-  local node_version
-  node_version="$(fnm current)"
-  fnm default "$node_version"
-}
+source "$SCRIPT_DIR/lib/node.sh"
 
 enable_codex_memories() {
   local config="$HOME/.codex/config.toml"
@@ -65,7 +51,7 @@ enable_codex_memories() {
   mv "$tmp" "$config"
 }
 
-ensure_node
+ensure_node_runtime
 
 if ! command -v codex >/dev/null 2>&1; then
   printf "Codex is not installed. Run brew bundle --file Brewfile first.\n" >&2

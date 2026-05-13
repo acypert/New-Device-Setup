@@ -42,6 +42,20 @@ omx setup --force --verbose --scope user
 omx doctor
 ```
 
+## Rerunning
+
+It is safe to rerun `./bootstrap.sh`. The setup is intended to be idempotent:
+Homebrew skips installed packages, zsh plugins update existing clones, iTerm
+dynamic profiles are overwritten from the checked-in copy, Codex memories stay
+enabled, and third-party skills are reinstalled through `npx skills`.
+
+If the first run stopped during agent skill installation, rerun the full
+bootstrap or run:
+
+```bash
+./scripts/agent-skills.sh
+```
+
 ## Packages
 
 Most apps and CLI tools live in `Brewfile`:

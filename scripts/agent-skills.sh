@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 AGENT_NAME="${SKILLS_AGENT:-codex}"
+
+source "$SCRIPT_DIR/lib/node.sh"
 
 install_skill() {
   local package="$1"
@@ -12,10 +15,7 @@ install_skill() {
   npx --yes skills add "$package" -g -a "$AGENT_NAME" --skill "$skill" "$@" -y
 }
 
-if ! command -v npx >/dev/null 2>&1; then
-  printf "npx is required before installing agent skills. Run scripts/codex.sh first.\n" >&2
-  exit 1
-fi
+ensure_node_runtime
 
 install_skill "vercel-labs/agent-browser" "agent-browser"
 install_skill "vercel-labs/skills" "find-skills"
