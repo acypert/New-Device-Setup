@@ -1,148 +1,164 @@
-# New-Device-Setup: Mac os
+# New Device Setup: macOS
 
-## Install xcode command line tools
+Bootstrap a new Mac with the tools, shell setup, Codex setup, Oh My Codex setup,
+and agent skills used on this laptop.
+
+## Quick Start
+
+Install Xcode Command Line Tools first:
+
 ```bash
 xcode-select --install
 ```
 
-## Install Homebrew
-[Homebrew](https://brew.sh/)
+Clone this repo and run the bootstrap:
+
+```bash
+git clone https://github.com/acypert/New-Device-Setup.git
+cd New-Device-Setup
+./bootstrap.sh
+```
+
+The script installs Homebrew if needed, runs `brew bundle`, configures zsh,
+installs Codex and Oh My Codex, enables Codex memories, runs OMX setup, and
+installs third-party agent skills with `npx skills`.
+
+## Manual Steps
+
+Some steps are intentionally left manual because they require auth, secrets, or
+GUI-specific choices.
+
+```bash
+gh auth login
+codex login
+```
+
+If OMX setup needs to be rerun:
+
+```bash
+cd ~
+omx setup --force --verbose --scope user
+omx doctor
+```
+
+## Packages
+
+Most apps and CLI tools live in `Brewfile`:
+
+- `git`
+- `gh`
+- `fnm`
+- `pyenv`
+- `httpie`
+- `bat`
+- iTerm2
+- Visual Studio Code
+- JetBrains Mono
+
+Apply package changes with:
+
+```bash
+brew bundle --file Brewfile
+```
+
+## Codex And Memories
+
+The setup script installs Codex and Oh My Codex with npm:
+
+```bash
+npm install -g @openai/codex oh-my-codex
+```
+
+It also enables memories in `~/.codex/config.toml`:
+
+```toml
+[features]
+memories = true
+```
+
+Codex personal state is not committed to this public repo. To move personal
+Codex config, native agents, prompts, memories, and the home-level `AGENTS.md`
+from the old laptop:
+
+```bash
+./scripts/backup-codex.sh
+```
+
+Then copy the generated archive to the new laptop and restore it:
+
+```bash
+./scripts/restore-codex-backup.sh codex-personal-backup-YYYYMMDD-HHMMSS.tgz
+```
+
+Review the archive before storing or sharing it. It may contain private
+preferences or memory context. Do not back up `~/.codex/auth.json`, logs,
+sessions, or sqlite state by default.
+
+## Codex Skills
+
+Oh My Codex skills are installed by `omx setup`.
+
+Third-party skills are installed through `npx skills`, not copied manually by
+default:
+
+```bash
+./scripts/agent-skills.sh
+```
+
+The current skill manifest lives in [`docs/codex-skills.md`](docs/codex-skills.md).
+
+## zsh
+
+The setup script installs Oh My Zsh, copies [`ac.zsh-theme`](ac.zsh-theme) into
+`~/.oh-my-zsh/themes`, sets `ZSH_THEME="ac"`, and installs:
+
+- `zsh-autosuggestions`
+- `zsh-syntax-highlighting`
+
+It also adds shell initialization for `fnm` and `pyenv`.
 
 ## iTerm2
-```bash
-brew install --cask iterm2
-```
-[Homebrew iTerm2](https://formulae.brew.sh/cask/iterm2)
-[iTerm2 homepage](https://iterm2.com/features.html)
 
-### Theme: One Dark
-Import into iTerm
+Import [`OneDark.itermcolors`](OneDark.itermcolors) into iTerm.
 
-[One Dark](./OneDark.itermcolors)
+Hotkey window:
 
-### Hotkey Window
-1. Open Preferences (CMD+,)
-1. General > Startup > Window restoration policy > Only Restore Hotkey Window
-1. Profiles > Window > Style: Full-Width Bottom of Screen, Screen: Screen with Cursor, Space: All Spaces
-1. Profiles > Keys > Check "A hotkey opens a dedicated window with this profile."
-1. Click Configure Hotkey Window > Set Hotkey (CMD+`) > Pin hotkey window, Animate showing and hiding, Floating window
-1. On Dock icon click: Show this Hotkey Window if no other window is open
+1. Open Preferences with `CMD+,`.
+2. General > Startup > Window restoration policy > Only Restore Hotkey Window.
+3. Profiles > Window > Style: Full-Width Bottom of Screen, Screen: Screen with Cursor, Space: All Spaces.
+4. Profiles > Keys > Check "A hotkey opens a dedicated window with this profile."
+5. Configure Hotkey Window > Set Hotkey `CMD+\`` > Pin hotkey window, Animate showing and hiding, Floating window.
+6. On Dock icon click: Show this Hotkey Window if no other window is open.
 
-### Open new tabs in the same directory
+Open new tabs in the same directory:
+
+```text
 Settings > Profiles > General > Working Directory > Reuse previous session's directory
-
-### cmd/opt + arrow keys
-[Natural Text Editing](https://superuser.com/a/1704086)
-1. Open Preferences
-2. Click "Profile" tab
-3. Select a profile in the list on the left (eg "Default")
-4. Click "Keys" tab
-5. Click "Key Mappings" tab (if it exists)
-6. Click the "Presets" dropdown and select "Natural Text Editing"
-
-### Jetbrains Mono font
-[JetBrains Mono](https://github.com/JetBrains/JetBrainsMono)
-
-
-### Quit and Restart iTerm
-
-```bash
-brew install --cask font-jetbrains-mono
 ```
+
+Natural Text Editing:
+
+1. Preferences > Profiles.
+2. Select the profile.
+3. Keys > Key Mappings.
+4. Presets > Natural Text Editing.
+
+Font:
+
+```text
 iTerm > Preferences > Profiles > Text > Font > JetBrains Mono
-
-### New Window Size
-`125 x 30`
-
-iTerm > Preferences > Profiles > Window > Settings for New Windows
-
-
-## Update/install git
-```bash
-brew install git
 ```
 
+New window size:
 
-## vscode
-```bash
-brew install --cask visual-studio-code
+```text
+125 x 30
 ```
 
+## Verify
 
-## oh-my-zsh
+Run:
+
 ```bash
-sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-```
-[oh-my-zsh](https://ohmyz.sh/)
-
-### Theme: ac (derived from afowler)
-1. Add to `~/.oh-my-zsh/themes`
-1. Open ~/.zshrc > set `ZSH_THEME="ac"`
-
-[ac](./ac.zsh-theme)
-[more themes if desired](https://github.com/mbadolato/iTerm2-Color-Schemes)
-
-### Plugins
-[list of plugins](https://github.com/ohmyzsh/ohmyzsh/wiki/Plugins)
-#### zsh-autosuggestions
-[github install page](https://github.com/zsh-users/zsh-autosuggestions/blob/master/INSTALL.md)
-
-1. Clone the repository into $ZSH_CUSTOM/plugins (by default ~/.oh-my-zsh/custom/plugins)
-    ```bash
-    git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-    ```
-2. Add the plugin to the list of plugins for Oh My Zsh to load (inside ~/.zshrc):
-    ```bash
-    plugins=( 
-        # other plugins...
-        zsh-autosuggestions
-    )
-    ```
-3. Source zsh
-    ```bash
-    source ~/.zshrc
-    ```
-    
-#### zsh-syntax-highlighting
-[GitHub install page](https://github.com/zsh-users/zsh-syntax-highlighting/blob/master/INSTALL.md#oh-my-zsh)
-
-1. Clone the repository in oh-my-zsh's plugins directory:
-    ```bash
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-    ```
-2. Activate the plugin in ~/.zshrc. Note that zsh-syntax-highlighting needs to be the last one in the list:
-    ```bash
-    plugins=( [plugins...] zsh-syntax-highlighting)
-    ```
-3. Source zsh
-    ```bash
-    source ~/.zshrc
-    ```
-    
-## CLI Tools
-### fnm
-[install script](https://github.com/Schniz/fnm#using-a-script-macoslinux)
-```bash
-curl -fsSL https://fnm.vercel.app/install | bash
-eval "$(fnm env --use-on-cd)" >> ~/.zshrc
-source ~/.zshrc
-```
-
-### sdkman!
-[install page](https://sdkman.io/install)
-```bash
-curl -s "https://get.sdkman.io" | bash
-source ~/.zshrc
-```
-
-### HTTPie
-[HTTPie](https://httpie.io/)
-```bash
-brew install httpie
-```
-
-### bat: a `cat` clone with syntax highlighting and Git integration
-[bat](https://github.com/sharkdp/bat)
-```bash
-brew install bat
+./scripts/verify.sh
 ```

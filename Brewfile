@@ -1,0 +1,10 @@
+brew "bat"
+brew "fnm"
+brew "gh"
+brew "git"
+brew "httpie"
+brew "pyenv"
+
+cask "font-jetbrains-mono"
+cask "iterm2"
+cask "visual-studio-code"
