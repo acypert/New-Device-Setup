@@ -1,7 +1,11 @@
-ensure_node_runtime() {
+activate_node_runtime() {
   if command -v fnm >/dev/null 2>&1; then
     eval "$(fnm env --shell bash)"
   fi
+}
+
+ensure_node_runtime() {
+  activate_node_runtime
 
   if command -v npm >/dev/null 2>&1 && command -v npx >/dev/null 2>&1; then
     return

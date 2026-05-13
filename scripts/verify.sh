@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+source "$SCRIPT_DIR/lib/node.sh"
+
+activate_node_runtime
+
 check_command() {
   local name="$1"
   if command -v "$name" >/dev/null 2>&1; then
