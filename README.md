@@ -119,6 +119,29 @@ Review the archive before storing or sharing it. It may contain private
 preferences or memory context. Do not back up `~/.codex/auth.json`, logs,
 sessions, or sqlite state by default.
 
+## Codex Profiles
+
+This repo supports a personal/default Codex setup and an optional work profile.
+The default bootstrap does not apply work-only API routing or work-specific
+developer instructions.
+
+To install the work profile:
+
+```bash
+export CODEX_WORK_LITELLM_BASE_URL="https://YOUR-LITELLM-HOST/v1"
+export CODEX_WORK_LITELLM_MODEL="YOUR-LITELLM-MODEL-ALIAS"
+./scripts/codex-profile.sh work
+```
+
+Then launch work sessions with:
+
+```bash
+codex --profile work
+```
+
+See [`docs/codex-work-profile.md`](docs/codex-work-profile.md) for the LiteLLM
+API-key manual steps and profile details.
+
 ## Codex Skills
 
 Oh My Codex skills are installed by `omx setup`.
