@@ -35,8 +35,9 @@ check_command code
 check_path "$HOME/.oh-my-zsh"
 check_path "$HOME/.codex/config.toml"
 check_path "$HOME/.codex/memories"
+check_path "$HOME/Library/Application Support/iTerm2/DynamicProfiles/ac-profiles.json"
 
 printf "\nManual checks still required:\n"
 printf "%s\n" "- gh auth login"
 printf "%s\n" "- codex login, or run codex and complete the browser sign-in"
-printf "%s\n" "- iTerm theme, hotkey window, Natural Text Editing, font, and window size"
+printf "%s\n" "- iTerm hotkey window behavior if dynamic profiles did not apply it automatically"

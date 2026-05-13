@@ -39,6 +39,9 @@ brew bundle --file "$ROOT_DIR/Brewfile"
 log "Configuring zsh"
 "$ROOT_DIR/scripts/zsh.sh"
 
+log "Installing iTerm2 dynamic profiles"
+"$ROOT_DIR/scripts/iterm2.sh" install
+
 log "Installing Codex and configuring OMX"
 "$ROOT_DIR/scripts/codex.sh"
 

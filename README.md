@@ -120,7 +120,25 @@ It also adds shell initialization for `fnm` and `pyenv`.
 
 ## iTerm2
 
-Import [`OneDark.itermcolors`](OneDark.itermcolors) into iTerm.
+The setup script installs dynamic profiles from
+[`iterm2/DynamicProfiles`](iterm2/DynamicProfiles), including the current
+profile keyboard shortcuts.
+
+To refresh the checked-in profiles after changing iTerm profile settings:
+
+```bash
+./scripts/iterm2.sh export
+```
+
+To install the checked-in profiles manually:
+
+```bash
+./scripts/iterm2.sh install
+```
+
+[`OneDark.itermcolors`](OneDark.itermcolors) is kept for manual import if needed,
+but the checked-in dynamic profiles also include the current profile color
+settings.
 
 Hotkey window:
 
