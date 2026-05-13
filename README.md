@@ -52,6 +52,7 @@ Most apps and CLI tools live in `Brewfile`:
 - `httpie`
 - `bat`
 - iTerm2
+- Rectangle
 - Visual Studio Code
 - JetBrains Mono
 

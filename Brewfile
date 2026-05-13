@@ -7,4 +7,5 @@ brew "pyenv"
 
 cask "font-jetbrains-mono"
 cask "iterm2"
+cask "rectangle"
 cask "visual-studio-code"
