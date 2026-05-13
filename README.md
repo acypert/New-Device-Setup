@@ -20,8 +20,9 @@ cd New-Device-Setup
 ```
 
 The script installs Homebrew if needed, runs `brew bundle`, configures zsh,
-installs Codex and Oh My Codex, enables Codex memories, runs OMX setup, and
-installs third-party agent skills with `npx skills`.
+installs Codex through Homebrew, installs Oh My Codex through npm, enables Codex
+memories, runs OMX setup, and installs third-party agent skills with
+`npx skills`.
 
 ## Manual Steps
 
@@ -49,9 +50,11 @@ Most apps and CLI tools live in `Brewfile`:
 - `gh`
 - `fnm`
 - `pyenv`
+- `rust`
 - `tmux`
 - `httpie`
 - `bat`
+- Codex
 - iTerm2
 - Rectangle
 - Visual Studio Code
@@ -65,10 +68,16 @@ brew bundle --file Brewfile
 
 ## Codex And Memories
 
-The setup script installs Codex and Oh My Codex with npm:
+The setup script installs Codex with Homebrew:
 
 ```bash
-npm install -g @openai/codex oh-my-codex
+brew install --cask codex
+```
+
+Oh My Codex is still installed with npm:
+
+```bash
+npm install -g oh-my-codex
 ```
 
 It also enables memories in `~/.codex/config.toml`:

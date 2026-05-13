@@ -67,8 +67,13 @@ enable_codex_memories() {
 
 ensure_node
 
-printf "Installing OpenAI Codex CLI and Oh My Codex\n"
-npm install -g @openai/codex oh-my-codex
+if ! command -v codex >/dev/null 2>&1; then
+  printf "Codex is not installed. Run brew bundle --file Brewfile first.\n" >&2
+  exit 1
+fi
+
+printf "Installing Oh My Codex\n"
+npm install -g oh-my-codex
 
 printf "Enabling Codex memories\n"
 enable_codex_memories

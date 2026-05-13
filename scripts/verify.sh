@@ -30,6 +30,8 @@ check_command omx
 check_command http
 check_command bat
 check_command pyenv
+check_command rustc
+check_command cargo
 check_command tmux
 check_command code
 
