@@ -25,6 +25,48 @@ check_path() {
   fi
 }
 
+check_codex_feature() {
+  local feature="$1"
+  local config="$HOME/.codex/config.toml"
+
+  if [[ -f "$config" ]] && awk -v feature="$feature" '
+    /^\[features\][[:space:]]*$/ {
+      in_features = 1
+      next
+    }
+    /^\[/ {
+      in_features = 0
+    }
+    in_features {
+      line = $0
+      sub(/[[:space:]]*#.*/, "", line)
+      pattern = "^[[:space:]]*" feature "[[:space:]]*=[[:space:]]*true[[:space:]]*$"
+      if (line ~ pattern) {
+        found = 1
+      }
+    }
+    END {
+      exit found ? 0 : 1
+    }
+  ' "$config"; then
+    printf "ok   %s [features].%s\n" "$config" "$feature"
+  else
+    printf "miss %s [features].%s\n" "$config" "$feature"
+  fi
+}
+
+check_omx_plugin_cache() {
+  local cache_root="${CODEX_HOME:-$HOME/.codex}/plugins/cache"
+  local plugin_manifest
+
+  plugin_manifest="$(find "$cache_root" -path "*/oh-my-codex/*/.codex-plugin/plugin.json" -type f -print -quit 2>/dev/null || true)"
+  if [[ -n "$plugin_manifest" ]]; then
+    printf "ok   oh-my-codex plugin cache -> %s\n" "$(dirname "$(dirname "$plugin_manifest")")"
+  else
+    printf "miss oh-my-codex plugin cache\n"
+  fi
+}
+
 check_command brew
 check_command git
 check_command gh
@@ -43,8 +85,14 @@ check_command code
 
 check_path "$HOME/.oh-my-zsh"
 check_path "$HOME/.codex/config.toml"
+check_path "$HOME/.codex/hooks.json"
 check_path "$HOME/.codex/memories"
 check_path "$HOME/Library/Application Support/iTerm2/DynamicProfiles/ac-profiles.json"
+
+check_codex_feature memories
+check_codex_feature hooks
+check_codex_feature goals
+check_omx_plugin_cache
 
 printf "\nManual checks still required:\n"
 printf "%s\n" "- gh auth login"

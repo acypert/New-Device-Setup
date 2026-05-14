@@ -180,6 +180,8 @@ def remove_top_level_keys(text: str) -> str:
         "forced_chatgpt_workspace_id",
         "forced_login_method",
         "model",
+        "model_auto_compact_token_limit",
+        "model_context_window",
         "model_provider",
         "model_reasoning_effort",
         "openai_base_url",

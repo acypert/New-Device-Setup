@@ -20,9 +20,9 @@ cd New-Device-Setup
 ```
 
 The script installs Homebrew if needed, runs `brew bundle`, configures zsh,
-installs Codex through Homebrew, installs Oh My Codex through npm, enables Codex
-memories, runs OMX setup, and installs third-party agent skills with
-`npx skills`.
+installs Codex through Homebrew, installs or updates Oh My Codex through npm,
+enables the Codex runtime feature flags this setup depends on, runs plugin-mode
+OMX setup, and installs third-party agent skills with `npx skills`.
 
 ## Manual Steps
 
@@ -38,7 +38,7 @@ If OMX setup needs to be rerun:
 
 ```bash
 cd ~
-omx setup --force --verbose --scope user
+omx setup --force --verbose --scope user --install-mode plugin --mcp none
 omx doctor
 ```
 
@@ -46,8 +46,9 @@ omx doctor
 
 It is safe to rerun `./bootstrap.sh`. The setup is intended to be idempotent:
 Homebrew skips installed packages, zsh plugins update existing clones, iTerm
-dynamic profiles are overwritten from the checked-in copy, Codex memories stay
-enabled, and third-party skills are reinstalled through `npx skills`.
+dynamic profiles are overwritten from the checked-in copy, Codex runtime flags
+stay enabled, OMX refreshes plugin-mode hooks and plugin discovery, and
+third-party skills are reinstalled through `npx skills`.
 
 If the first run stopped during agent skill installation, rerun the full
 bootstrap or run:
@@ -80,7 +81,7 @@ Apply package changes with:
 brew bundle --file Brewfile
 ```
 
-## Codex And Memories
+## Codex And OMX
 
 The setup script installs Codex with Homebrew:
 
@@ -88,22 +89,35 @@ The setup script installs Codex with Homebrew:
 brew install --cask codex
 ```
 
-Oh My Codex is still installed with npm:
+Oh My Codex is installed and updated with npm:
 
 ```bash
-npm install -g oh-my-codex
+npm install -g oh-my-codex@latest
 ```
 
-It also enables memories in `~/.codex/config.toml`:
+It also enables the Codex feature flags required by this setup in
+`~/.codex/config.toml`:
 
 ```toml
 [features]
 memories = true
+hooks = true
+goals = true
 ```
 
+OMX setup runs in Codex plugin delivery mode:
+
+```bash
+omx setup --force --verbose --scope user --install-mode plugin --mcp none
+```
+
+Plugin mode uses Codex plugin discovery for bundled OMX workflows and skills,
+keeps runtime hooks in `~/.codex/hooks.json`, and leaves first-party OMX MCP
+compatibility disabled unless it is explicitly requested.
+
 Codex personal state is not committed to this public repo. To move personal
-Codex config, native agents, prompts, memories, and the home-level `AGENTS.md`
-from the old laptop:
+Codex config, hook registrations, profile instructions, native agents, prompts,
+memories, and the home-level `AGENTS.md` from the old laptop:
 
 ```bash
 ./scripts/backup-codex.sh
@@ -117,7 +131,7 @@ Then copy the generated archive to the new laptop and restore it:
 
 Review the archive before storing or sharing it. It may contain private
 preferences or memory context. Do not back up `~/.codex/auth.json`, logs,
-sessions, or sqlite state by default.
+sessions, sqlite state, or generated plugin caches by default.
 
 ## Codex Profiles
 
@@ -144,7 +158,9 @@ API-key manual steps and profile details.
 
 ## Codex Skills
 
-Oh My Codex skills are installed by `omx setup`.
+Oh My Codex workflows and bundled skills are supplied by the Codex plugin that
+`omx setup --install-mode plugin` registers and refreshes. Setup still owns the
+native runtime hooks and Codex runtime feature flags.
 
 Third-party skills are installed through `npx skills`, not copied manually by
 default:

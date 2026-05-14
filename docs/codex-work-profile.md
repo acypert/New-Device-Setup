@@ -22,6 +22,9 @@ The script adds:
 
 It also sets the same work provider, model, and developer instructions at the
 top level of `~/.codex/config.toml`, so plain `codex` uses the work setup.
+When those top-level work defaults are installed, stale top-level model context
+window settings from a previous default model are removed instead of being
+silently applied to the work provider.
 
 It does not store an API key.
 

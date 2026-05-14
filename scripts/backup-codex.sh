@@ -15,8 +15,10 @@ add_if_exists() {
 
 add_if_exists ".codex/AGENTS.md"
 add_if_exists ".codex/config.toml"
+add_if_exists ".codex/hooks.json"
 add_if_exists ".codex/agents"
 add_if_exists ".codex/prompts"
+add_if_exists ".codex/profiles"
 add_if_exists ".codex/memories"
 add_if_exists "AGENTS.md"
 
