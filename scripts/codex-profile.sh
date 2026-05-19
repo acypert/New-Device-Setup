@@ -110,6 +110,52 @@ print(profile_end)
 PY
 }
 
+validate_toml_config() {
+  local config_path="$1"
+  local python_status
+  local validation_home
+
+  if python3 - "$config_path" <<'PY'
+import sys
+
+try:
+    import tomllib as toml_parser
+except ModuleNotFoundError:
+    try:
+        import tomli as toml_parser
+    except ModuleNotFoundError:
+        sys.exit(42)
+
+with open(sys.argv[1], "rb") as f:
+    toml_parser.load(f)
+PY
+  then
+    return
+  else
+    python_status="$?"
+  fi
+
+  if [[ "$python_status" != "42" ]]; then
+    return 1
+  fi
+
+  if ! command -v codex >/dev/null 2>&1; then
+    printf "Unable to validate generated TOML: python3 has neither tomllib nor tomli, and codex is not installed.\n" >&2
+    return 1
+  fi
+
+  validation_home="$(mktemp -d)"
+  cp "$config_path" "$validation_home/config.toml"
+
+  if CODEX_HOME="$validation_home" codex features list >/dev/null; then
+    rm -rf "$validation_home"
+    return
+  fi
+
+  rm -rf "$validation_home"
+  return 1
+}
+
 if [[ "$PRINT_ONLY" == "true" ]]; then
   generate_blocks
   exit 0
@@ -238,16 +284,7 @@ else:
 tmp_path.write_text(next_config.lstrip(), encoding="utf-8")
 PY
 
-python3 - "$tmp_config" <<'PY'
-import sys
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib
-
-with open(sys.argv[1], "rb") as f:
-    tomllib.load(f)
-PY
+validate_toml_config "$tmp_config"
 
 backup="$CODEX_CONFIG.bak.$(date +%Y%m%d-%H%M%S)"
 cp "$CODEX_CONFIG" "$backup"
