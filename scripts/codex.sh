@@ -12,16 +12,20 @@ ensure_codex_feature_flags() {
   mkdir -p "$HOME/.codex"
 
   if [[ ! -f "$config" ]]; then
-    printf "[features]\nmemories = true\nhooks = true\ngoals = true\n" > "$config"
+    printf "[features]\nmemories = true\n" > "$config"
     return
   fi
 
   tmp="$(mktemp)"
   awk '
     BEGIN {
-      managed_count = split("memories hooks goals", managed, " ")
+      managed_count = split("memories", managed, " ")
+      disabled_count = split("hooks goals", disabled, " ")
       for (i = 1; i <= managed_count; i++) {
         desired[managed[i]] = 1
+      }
+      for (i = 1; i <= disabled_count; i++) {
+        no_longer_managed[disabled[i]] = 1
       }
       in_features = 0
       saw_features = 0
@@ -50,6 +54,12 @@ ensure_codex_feature_flags() {
     in_features {
       line = $0
       sub(/[[:space:]]*#.*/, "", line)
+      for (key in no_longer_managed) {
+        pattern = "^[[:space:]]*" key "[[:space:]]*="
+        if (line ~ pattern) {
+          next
+        }
+      }
       for (i = 1; i <= managed_count; i++) {
         key = managed[i]
         pattern = "^[[:space:]]*" key "[[:space:]]*="
@@ -76,6 +86,213 @@ ensure_codex_feature_flags() {
   mv "$tmp" "$config"
 }
 
+remove_omx_hook_trust_state() {
+  local config="$HOME/.codex/config.toml"
+  local hooks_path="$HOME/.codex/hooks.json"
+  local tmp
+
+  [[ -f "$config" ]] || return
+
+  tmp="$(mktemp)"
+  python3 - "$config" "$tmp" "$hooks_path" <<'PY'
+import sys
+from pathlib import Path
+
+config_path = Path(sys.argv[1])
+tmp_path = Path(sys.argv[2])
+hooks_path = sys.argv[3]
+
+skip_table = False
+output = []
+
+for line in config_path.read_text(encoding="utf-8").splitlines(keepends=True):
+    stripped = line.strip()
+
+    if stripped.startswith("["):
+        skip_table = (
+            stripped.startswith("[hooks.state.")
+            and f'"{hooks_path}:' in stripped
+        )
+        if skip_table:
+            continue
+
+    if skip_table:
+        continue
+
+    if stripped == "# End OMX-owned Codex hook trust state":
+        continue
+
+    output.append(line)
+
+tmp_path.write_text("".join(output), encoding="utf-8")
+PY
+  mv "$tmp" "$config"
+}
+
+remove_omx_native_hooks() {
+  local hooks_path="$HOME/.codex/hooks.json"
+
+  [[ -f "$hooks_path" ]] || return
+
+  python3 - "$hooks_path" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+hooks_path = Path(sys.argv[1])
+data = json.loads(hooks_path.read_text(encoding="utf-8"))
+
+def is_omx_native_hook(hook):
+    command = hook.get("command", "")
+    return "oh-my-codex" in command and "codex-native-hook.js" in command
+
+hooks = data.get("hooks", {})
+clean_hooks = {}
+for event_name, entries in hooks.items():
+    clean_entries = []
+    for entry in entries:
+        entry_hooks = entry.get("hooks", [])
+        remaining_hooks = [
+            hook for hook in entry_hooks
+            if not is_omx_native_hook(hook)
+        ]
+        if remaining_hooks:
+            clean_entry = dict(entry)
+            clean_entry["hooks"] = remaining_hooks
+            clean_entries.append(clean_entry)
+        elif not entry_hooks:
+            clean_entries.append(entry)
+    if clean_entries:
+        clean_hooks[event_name] = clean_entries
+
+if clean_hooks:
+    data["hooks"] = clean_hooks
+else:
+    data.pop("hooks", None)
+
+state = data.get("state", {})
+clean_state = {
+    key: value
+    for key, value in state.items()
+    if not key.startswith(f"{hooks_path}:")
+}
+if clean_state:
+    data["state"] = clean_state
+else:
+    data.pop("state", None)
+
+if data:
+    hooks_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+else:
+    hooks_path.unlink()
+PY
+}
+
+archive_omx_agents_md() {
+  local agents_path="$HOME/.codex/AGENTS.md"
+  local archive_path
+
+  [[ -f "$agents_path" ]] || return
+
+  if grep -q '<!-- omx:generated:agents-md -->' "$agents_path"; then
+    archive_path="$agents_path.omx-disabled.$(date +%Y%m%d-%H%M%S)"
+    mv "$agents_path" "$archive_path"
+    printf "Archived generated OMX AGENTS.md to %s\n" "$archive_path"
+  fi
+}
+
+refresh_omx_plugin_cache() {
+  local npm_root
+  local package_root
+  local plugin_source
+  local plugin_manifest
+  local plugin_version
+  local cache_base
+  local destination
+  local tmp_destination
+
+  npm_root="$(npm root -g)"
+  package_root="$npm_root/oh-my-codex"
+  plugin_source="$package_root/plugins/oh-my-codex"
+  plugin_manifest="$plugin_source/.codex-plugin/plugin.json"
+
+  if [[ ! -f "$plugin_manifest" ]]; then
+    printf "Oh My Codex plugin manifest not found: %s\n" "$plugin_manifest" >&2
+    exit 1
+  fi
+
+  plugin_version="$(
+    node -e 'const fs = require("fs"); const path = process.argv[1]; console.log(JSON.parse(fs.readFileSync(path, "utf8")).version);' "$plugin_manifest"
+  )"
+
+  cache_base="${CODEX_HOME:-$HOME/.codex}/plugins/cache/oh-my-codex-local/oh-my-codex"
+  destination="$cache_base/$plugin_version"
+  tmp_destination="$destination.tmp.$$"
+
+  mkdir -p "$cache_base"
+  rm -rf "$tmp_destination"
+  mkdir -p "$tmp_destination"
+  cp -R "$plugin_source"/. "$tmp_destination"/
+  rm -rf "$destination"
+  mv "$tmp_destination" "$destination"
+
+  find "$cache_base" -mindepth 1 -maxdepth 1 -type d ! -name "$plugin_version" -exec rm -rf {} +
+}
+
+ensure_omx_plugin_config() {
+  local config="$HOME/.codex/config.toml"
+  local npm_root
+  local package_root
+  local tmp
+
+  npm_root="$(npm root -g)"
+  package_root="$npm_root/oh-my-codex"
+  tmp="$(mktemp)"
+
+  python3 - "$config" "$tmp" "$package_root" <<'PY'
+import sys
+from pathlib import Path
+
+config_path = Path(sys.argv[1])
+tmp_path = Path(sys.argv[2])
+package_root = sys.argv[3]
+
+target_tables = {
+    '[plugins."oh-my-codex@oh-my-codex-local"]',
+    '[marketplaces.oh-my-codex-local]',
+}
+
+skip_table = False
+output = []
+for line in config_path.read_text(encoding="utf-8").splitlines(keepends=True):
+    stripped = line.strip()
+    if stripped.startswith("["):
+        skip_table = stripped in target_tables
+        if skip_table:
+            continue
+    if skip_table:
+        continue
+    output.append(line)
+
+while output and not output[-1].strip():
+    output.pop()
+
+escaped_package_root = package_root.replace("\\", "\\\\").replace('"', '\\"')
+output.extend([
+    "\n\n",
+    '[plugins."oh-my-codex@oh-my-codex-local"]\n',
+    "enabled = true\n",
+    "\n",
+    "[marketplaces.oh-my-codex-local]\n",
+    'source_type = "local"\n',
+    f'source = "{escaped_package_root}"\n',
+])
+
+tmp_path.write_text("".join(output), encoding="utf-8")
+PY
+  mv "$tmp" "$config"
+}
+
 ensure_node_runtime
 
 if ! command -v codex >/dev/null 2>&1; then
@@ -86,19 +303,12 @@ fi
 printf "Installing or updating Oh My Codex\n"
 npm install -g oh-my-codex@latest
 
-printf "Enabling Codex runtime feature flags\n"
+printf "Configuring Codex for OMX skills-only plugin discovery\n"
 ensure_codex_feature_flags
+remove_omx_hook_trust_state
+remove_omx_native_hooks
+archive_omx_agents_md
+refresh_omx_plugin_cache
+ensure_omx_plugin_config
 
-if command -v omx >/dev/null 2>&1; then
-  printf "Running Oh My Codex setup in plugin mode\n"
-  (
-    cd "$HOME"
-    omx setup --force --verbose --scope user --install-mode plugin --mcp none
-    omx doctor
-  )
-else
-  printf "omx command not found. Install Oh My Codex, then run:\n" >&2
-  printf "  cd ~\n" >&2
-  printf "  omx setup --force --verbose --scope user --install-mode plugin --mcp none\n" >&2
-  printf "  omx doctor\n" >&2
-fi
+printf "OMX plugin skills are available without installing OMX native hooks.\n"

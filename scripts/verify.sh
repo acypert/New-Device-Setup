@@ -55,6 +55,36 @@ check_codex_feature() {
   fi
 }
 
+check_codex_feature_not_true() {
+  local feature="$1"
+  local config="$HOME/.codex/config.toml"
+
+  if [[ -f "$config" ]] && awk -v feature="$feature" '
+    /^\[features\][[:space:]]*$/ {
+      in_features = 1
+      next
+    }
+    /^\[/ {
+      in_features = 0
+    }
+    in_features {
+      line = $0
+      sub(/[[:space:]]*#.*/, "", line)
+      pattern = "^[[:space:]]*" feature "[[:space:]]*=[[:space:]]*true[[:space:]]*$"
+      if (line ~ pattern) {
+        found = 1
+      }
+    }
+    END {
+      exit found ? 0 : 1
+    }
+  ' "$config"; then
+    printf "miss %s [features].%s should not be true for skills-only OMX\n" "$config" "$feature"
+  else
+    printf "ok   %s [features].%s is not true\n" "$config" "$feature"
+  fi
+}
+
 check_omx_plugin_cache() {
   local cache_root="${CODEX_HOME:-$HOME/.codex}/plugins/cache"
   local plugin_manifest
@@ -64,6 +94,51 @@ check_omx_plugin_cache() {
     printf "ok   oh-my-codex plugin cache -> %s\n" "$(dirname "$(dirname "$plugin_manifest")")"
   else
     printf "miss oh-my-codex plugin cache\n"
+  fi
+}
+
+check_omx_plugin_config() {
+  local config="$HOME/.codex/config.toml"
+
+  if [[ -f "$config" ]] && awk '
+    /^\[plugins\."oh-my-codex@oh-my-codex-local"\][[:space:]]*$/ {
+      in_plugin = 1
+      next
+    }
+    /^\[/ {
+      in_plugin = 0
+    }
+    in_plugin {
+      line = $0
+      sub(/[[:space:]]*#.*/, "", line)
+      if (line ~ /^[[:space:]]*enabled[[:space:]]*=[[:space:]]*true[[:space:]]*$/) {
+        found = 1
+      }
+    }
+    END {
+      exit found ? 0 : 1
+    }
+  ' "$config"; then
+    printf "ok   oh-my-codex plugin enabled in %s\n" "$config"
+  else
+    printf "miss oh-my-codex plugin enabled in %s\n" "$config"
+  fi
+}
+
+check_no_omx_native_hooks() {
+  local hooks_path="$HOME/.codex/hooks.json"
+  local agents_path="$HOME/.codex/AGENTS.md"
+
+  if [[ -f "$hooks_path" ]] && grep -q 'oh-my-codex.*/codex-native-hook\.js' "$hooks_path"; then
+    printf "miss OMX native hook commands remain in %s\n" "$hooks_path"
+  else
+    printf "ok   no OMX native hook commands\n"
+  fi
+
+  if [[ -f "$agents_path" ]] && grep -q '<!-- omx:generated:agents-md -->' "$agents_path"; then
+    printf "miss generated OMX AGENTS.md remains at %s\n" "$agents_path"
+  else
+    printf "ok   no generated OMX AGENTS.md\n"
   fi
 }
 
@@ -85,14 +160,15 @@ check_command code
 
 check_path "$HOME/.oh-my-zsh"
 check_path "$HOME/.codex/config.toml"
-check_path "$HOME/.codex/hooks.json"
 check_path "$HOME/.codex/memories"
 check_path "$HOME/Library/Application Support/iTerm2/DynamicProfiles/ac-profiles.json"
 
 check_codex_feature memories
-check_codex_feature hooks
-check_codex_feature goals
+check_codex_feature_not_true hooks
+check_codex_feature_not_true goals
 check_omx_plugin_cache
+check_omx_plugin_config
+check_no_omx_native_hooks
 
 printf "\nManual checks still required:\n"
 printf "%s\n" "- gh auth login"

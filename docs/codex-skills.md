@@ -1,19 +1,20 @@
 # Codex Skills
 
 OMX-owned workflows and bundled skills are supplied by Codex plugin discovery in
-the current setup. Oh My Codex still needs the npm package plus setup because
-plugin discovery does not install runtime hooks or enable Codex goal mode:
+the current setup. Oh My Codex still needs the npm package, but this repo
+refreshes the local plugin cache directly instead of running full OMX setup:
 
 ```bash
-npm install -g oh-my-codex@latest
-omx setup --force --verbose --scope user --install-mode plugin --mcp none
+./scripts/codex.sh
 ```
 
-That setup keeps native hooks in `~/.codex/hooks.json`, enables
-`features.hooks` and `features.goals`, and refreshes the local
-`oh-my-codex-local` plugin cache. Legacy `~/.agents/skills` can be archived
-after confirming current skills are available under `~/.codex/skills` or from
-plugin discovery.
+That script refreshes the local `oh-my-codex-local` plugin cache and enables
+the plugin in `~/.codex/config.toml`. It intentionally removes setup-owned OMX
+native hooks from `~/.codex/hooks.json`, removes generated OMX `AGENTS.md`
+guidance, and does not enable `features.hooks` or `features.goals`.
+
+Legacy `~/.agents/skills` can be archived after confirming current skills are
+available under `~/.codex/skills` or from plugin discovery.
 
 Third-party agent skills should be installed with the `skills` CLI through `npx`.
 The setup script runs the same commands from `scripts/agent-skills.sh`.

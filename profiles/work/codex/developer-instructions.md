@@ -1,5 +1,3 @@
-You have oh-my-codex installed through Codex plugin mode. AGENTS.md is the orchestration brain and main control surface. Follow AGENTS.md for skill/keyword routing and $name workflow invocation. Registered Codex plugin marketplace surfaces supply OMX workflows, prompts, and native-agent roles when the plugin is installed. User-installed skills may still live under ~/.codex/skills. Setup-owned prompt files and native-agent TOML defaults are intentionally omitted unless explicitly installed. Use outcome-first, concise progress updates: state the target result, constraints, validation evidence, and stop condition before adding process detail.
-
 Custom user instructions:
 
 # Agent Guidelines
@@ -10,6 +8,27 @@ Custom user instructions:
 - Follow existing code style and conventions in the project.
 - Keep files small and focused on a single responsibility.
 - Don't repeat yourself; abstract common logic into reusable functions or components.
+
+## Design Guidelines
+- Give each module, class, function, or component one clear job. If it handles unrelated concerns like validation, persistence, formatting, rendering, logging, and network calls, split those responsibilities.
+- Keep business logic separate from transport, UI, database, framework, and third-party service code.
+- Prefer adding new behavior by introducing a new implementation, handler, strategy, adapter, or component variant instead of repeatedly editing central conditionals.
+- Avoid large `if` / `switch` chains that branch by type, provider, mode, or feature when a map, registry, polymorphic interface, or composition pattern would make additions cleaner.
+- Preserve existing contracts. A replacement implementation must accept the same inputs, return compatible outputs, follow the same error conventions, and not introduce surprising side effects.
+- Do not make callers depend on methods, props, options, or fields they do not use. Split broad interfaces and large prop shapes into smaller focused contracts.
+- Depend on stable abstractions at boundaries. Inject repositories, clients, clocks, payment providers, file systems, external APIs, and configuration instead of hardcoding concrete implementations deep inside core logic.
+- Keep framework-specific and vendor-specific code near the edge of the system. Wrap third-party APIs behind local adapters when they touch core behavior.
+- Reuse existing project patterns before creating new abstractions.
+- Add abstractions only when they reduce real duplication, isolate meaningful change, or support an actual variation point. Do not add layers just to look architectural.
+- Make code easy to test by isolating side effects and passing dependencies explicitly.
+- When changing behavior, add or update tests that prove the public contract still holds.
+- During review, ask:
+  - What single reason would this file have to change?
+  - Can a new variant be added without rewriting unrelated code?
+  - Can this implementation be swapped without breaking callers?
+  - Is any caller forced to know about details it does not use?
+  - Are external dependencies isolated behind a clear boundary?
+- Treat these guidelines as a way to reduce coupling and clarify responsibilities, not as a reason to multiply files or abstractions unnecessarily.
 
 ## Additional Instructions
 - When creating Git commits, keep the description short, concise, and fits on one line.
