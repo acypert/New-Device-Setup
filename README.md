@@ -209,8 +209,14 @@ Hotkey window:
 2. General > Startup > Window restoration policy > Only Restore Hotkey Window.
 3. Profiles > Window > Style: Full-Width Bottom of Screen, Screen: Screen with Cursor, Space: All Spaces.
 4. Profiles > Keys > Check "A hotkey opens a dedicated window with this profile."
-5. Configure Hotkey Window > Set Hotkey `CMD+\`` > Pin hotkey window, Animate showing and hiding, Floating window.
+5. Configure Hotkey Window > Set Hotkey to double-tap Option > Pin hotkey window, Animate showing and hiding, Floating window.
 6. On Dock icon click: Show this Hotkey Window if no other window is open.
+
+If the Option double-tap works only while iTerm2 is already active, grant
+`/Applications/iTerm.app` permission in System Settings > Privacy & Security >
+Input Monitoring and Accessibility, then quit and reopen iTerm2. The dedicated
+hotkey window needs global keyboard event access to trigger while another app is
+frontmost.
 
 Open new tabs in the same directory:
 
