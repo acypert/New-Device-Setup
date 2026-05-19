@@ -13,6 +13,11 @@ the plugin in `~/.codex/config.toml`. It intentionally removes setup-owned OMX
 native hooks from `~/.codex/hooks.json`, removes generated OMX `AGENTS.md`
 guidance, and does not enable `features.hooks` or `features.goals`.
 
+The same default setup writes repo-managed global Codex guidance to
+`~/.codex/AGENTS.md` without work-only `Additional Instructions`. Running
+`./scripts/codex-profile.sh work` installs the full work guidance into that
+global AGENTS file.
+
 Legacy `~/.agents/skills` can be archived after confirming current skills are
 available under `~/.codex/skills` or from plugin discovery.
 

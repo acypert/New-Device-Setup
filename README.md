@@ -116,8 +116,12 @@ removing setup-owned OMX native hooks, generated OMX `AGENTS.md` guidance, and
 OMX-owned hook trust state. Full OMX runtime setup remains available manually
 with `omx setup`, but it is not part of this machine bootstrap.
 
+The default setup also installs the repo-managed Codex guidance into
+`~/.codex/AGENTS.md` without the work-only `Additional Instructions` section.
+Those additional instructions are installed only by the work profile script.
+
 Codex personal state is not committed to this public repo. To move personal
-Codex config, hook registrations, profile instructions, native agents, prompts,
+Codex config, hook registrations, AGENTS guidance, native agents, prompts,
 memories, and the home-level `AGENTS.md` from the old laptop:
 
 ```bash
@@ -138,7 +142,7 @@ sessions, sqlite state, or generated plugin caches by default.
 
 This repo supports a personal/default Codex setup and an optional work profile.
 The default bootstrap does not apply work-only API routing or work-specific
-developer instructions.
+additional instructions.
 
 To install the work profile:
 

@@ -2,8 +2,13 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+source "$SCRIPT_DIR/lib/codex-agents.sh"
 source "$SCRIPT_DIR/lib/node.sh"
+
+SOURCE_AGENTS="$ROOT_DIR/profiles/work/codex/AGENTS.md"
+WORK_DEFAULT_BEGIN_MARKER="# BEGIN New-Device-Setup Codex default: work"
 
 ensure_codex_feature_flags() {
   local config="$HOME/.codex/config.toml"
@@ -91,7 +96,7 @@ remove_omx_hook_trust_state() {
   local hooks_path="$HOME/.codex/hooks.json"
   local tmp
 
-  [[ -f "$config" ]] || return
+  [[ -f "$config" ]] || return 0
 
   tmp="$(mktemp)"
   python3 - "$config" "$tmp" "$hooks_path" <<'PY'
@@ -129,10 +134,52 @@ PY
   mv "$tmp" "$config"
 }
 
+remove_codex_developer_instructions_config() {
+  local config="$HOME/.codex/config.toml"
+  local tmp
+
+  [[ -f "$config" ]] || return 0
+
+  tmp="$(mktemp)"
+  python3 - "$config" "$tmp" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+config_path = Path(sys.argv[1])
+tmp_path = Path(sys.argv[2])
+
+lines = config_path.read_text(encoding="utf-8").splitlines()
+output = []
+i = 0
+assignment_re = re.compile(r"^\s*developer_instructions\s*=")
+
+while i < len(lines):
+    line = lines[i]
+    if assignment_re.match(line):
+        remainder = line.split("=", 1)[1]
+        triple_count = remainder.count('"""')
+        i += 1
+        if triple_count % 2 == 1:
+            while i < len(lines):
+                triple_count += lines[i].count('"""')
+                i += 1
+                if triple_count % 2 == 0:
+                    break
+        continue
+
+    output.append(line)
+    i += 1
+
+tmp_path.write_text("\n".join(output).rstrip() + "\n", encoding="utf-8")
+PY
+  mv "$tmp" "$config"
+}
+
 remove_omx_native_hooks() {
   local hooks_path="$HOME/.codex/hooks.json"
 
-  [[ -f "$hooks_path" ]] || return
+  [[ -f "$hooks_path" ]] || return 0
 
   python3 - "$hooks_path" <<'PY'
 import json
@@ -186,19 +233,6 @@ if data:
 else:
     hooks_path.unlink()
 PY
-}
-
-archive_omx_agents_md() {
-  local agents_path="$HOME/.codex/AGENTS.md"
-  local archive_path
-
-  [[ -f "$agents_path" ]] || return
-
-  if grep -q '<!-- omx:generated:agents-md -->' "$agents_path"; then
-    archive_path="$agents_path.omx-disabled.$(date +%Y%m%d-%H%M%S)"
-    mv "$agents_path" "$archive_path"
-    printf "Archived generated OMX AGENTS.md to %s\n" "$archive_path"
-  fi
 }
 
 refresh_omx_plugin_cache() {
@@ -270,6 +304,8 @@ for line in config_path.read_text(encoding="utf-8").splitlines(keepends=True):
         skip_table = stripped in target_tables
         if skip_table:
             continue
+    if skip_table and stripped.startswith("# BEGIN New-Device-Setup "):
+        skip_table = False
     if skip_table:
         continue
     output.append(line)
@@ -305,9 +341,14 @@ npm install -g oh-my-codex@latest
 
 printf "Configuring Codex for OMX skills-only plugin discovery\n"
 ensure_codex_feature_flags
+remove_codex_developer_instructions_config
 remove_omx_hook_trust_state
 remove_omx_native_hooks
-archive_omx_agents_md
+if [[ -f "$HOME/.codex/config.toml" ]] && grep -q "$WORK_DEFAULT_BEGIN_MARKER" "$HOME/.codex/config.toml"; then
+  install_codex_agents_md "$SOURCE_AGENTS" full "$HOME/.codex/AGENTS.md"
+else
+  install_codex_agents_md "$SOURCE_AGENTS" without-additional "$HOME/.codex/AGENTS.md"
+fi
 refresh_omx_plugin_cache
 ensure_omx_plugin_config
 

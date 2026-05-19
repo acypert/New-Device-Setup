@@ -5,6 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CODEX_CONFIG="$HOME/.codex/config.toml"
 PROFILE_NAME="${1:-work}"
 
+source "$ROOT_DIR/scripts/lib/codex-agents.sh"
+
 usage() {
   printf "Usage: %s work [--print|--profile-only]\n" "$0" >&2
 }
@@ -36,22 +38,21 @@ done
 BASE_URL="${CODEX_WORK_LITELLM_BASE_URL:-https://YOUR-LITELLM-HOST/v1}"
 MODEL="${CODEX_WORK_LITELLM_MODEL:-YOUR-LITELLM-MODEL-ALIAS}"
 ENV_KEY="${CODEX_WORK_LITELLM_ENV_KEY:-LITELLM_API_KEY}"
-SOURCE_INSTRUCTIONS="$ROOT_DIR/profiles/work/codex/developer-instructions.md"
+SOURCE_AGENTS="$ROOT_DIR/profiles/work/codex/AGENTS.md"
 INSTALLED_PROFILE_DIR="$HOME/.codex/profiles/work"
-INSTALLED_INSTRUCTIONS="$INSTALLED_PROFILE_DIR/developer-instructions.md"
+INSTALLED_AGENTS="$INSTALLED_PROFILE_DIR/AGENTS.md"
 ROOT_BEGIN_MARKER="# BEGIN New-Device-Setup Codex default: work"
 ROOT_END_MARKER="# END New-Device-Setup Codex default: work"
 PROFILE_BEGIN_MARKER="# BEGIN New-Device-Setup Codex profile: work"
 PROFILE_END_MARKER="# END New-Device-Setup Codex profile: work"
 
-if [[ ! -f "$SOURCE_INSTRUCTIONS" ]]; then
-  printf "Work developer instructions not found: %s\n" "$SOURCE_INSTRUCTIONS" >&2
+if [[ ! -f "$SOURCE_AGENTS" ]]; then
+  printf "Work Codex AGENTS source not found: %s\n" "$SOURCE_AGENTS" >&2
   exit 1
 fi
 
 generate_blocks() {
   python3 - \
-    "$SOURCE_INSTRUCTIONS" \
     "$BASE_URL" \
     "$MODEL" \
     "$ENV_KEY" \
@@ -61,10 +62,8 @@ generate_blocks() {
     "$PROFILE_END_MARKER" \
     "$MAKE_DEFAULT" <<'PY'
 import sys
-from pathlib import Path
 
 (
-    instructions_path,
     base_url,
     model,
     env_key,
@@ -75,11 +74,6 @@ from pathlib import Path
     make_default,
 ) = sys.argv[1:]
 
-instructions = Path(instructions_path).read_text(encoding="utf-8").rstrip() + "\n"
-
-def toml_string(value: str) -> str:
-    return '"""' + value.replace("\\", "\\\\").replace('"""', '\\"""') + '"""'
-
 if make_default == "true":
     print(root_begin)
     print(f'model = "{model}"')
@@ -87,7 +81,6 @@ if make_default == "true":
     print('model_reasoning_effort = "xhigh"')
     print('personality = "pragmatic"')
     print('cli_auth_credentials_store = "auto"')
-    print('developer_instructions = ' + toml_string(instructions))
     print(root_end)
     print()
 
@@ -105,7 +98,6 @@ print(f'model = "{model}"')
 print('model_reasoning_effort = "xhigh"')
 print('personality = "pragmatic"')
 print('cli_auth_credentials_store = "auto"')
-print('developer_instructions = ' + toml_string(instructions))
 print(profile_end)
 PY
 }
@@ -162,7 +154,9 @@ if [[ "$PRINT_ONLY" == "true" ]]; then
 fi
 
 mkdir -p "$HOME/.codex" "$INSTALLED_PROFILE_DIR"
-cp "$SOURCE_INSTRUCTIONS" "$INSTALLED_INSTRUCTIONS"
+cp "$SOURCE_AGENTS" "$INSTALLED_AGENTS"
+rm -f "$INSTALLED_PROFILE_DIR/developer-instructions.md"
+install_codex_agents_md "$SOURCE_AGENTS" full "$HOME/.codex/AGENTS.md"
 touch "$CODEX_CONFIG"
 
 tmp_config="$(mktemp)"
@@ -205,6 +199,23 @@ block = block_path.read_text(encoding="utf-8").rstrip() + "\n"
 def remove_managed_block(text: str, begin: str, end: str) -> str:
     pattern = re.compile(rf"\n?{re.escape(begin)}.*?{re.escape(end)}\n?", re.DOTALL)
     return pattern.sub("\n", text)
+
+def remove_work_profile_block(text: str) -> str:
+    text = remove_managed_block(text, profile_begin, profile_end)
+    orphan_end = text.find(profile_end)
+    if orphan_end == -1:
+        return text
+
+    table_start = text.rfind("\n[model_providers.litellm_work]", 0, orphan_end)
+    if table_start == -1:
+        table_start = text.rfind("\n[profiles.work]", 0, orphan_end)
+    if table_start == -1:
+        return text
+
+    end = orphan_end + len(profile_end)
+    if end < len(text) and text[end] == "\n":
+        end += 1
+    return text[:table_start] + "\n" + text[end:]
 
 def split_generated_block(text: str):
     root_block = ""
@@ -265,7 +276,7 @@ def remove_top_level_keys(text: str) -> str:
     return "\n".join(output).rstrip() + "\n"
 
 cleaned = remove_managed_block(config, root_begin, root_end)
-cleaned = remove_managed_block(cleaned, profile_begin, profile_end)
+cleaned = remove_work_profile_block(cleaned)
 
 root_block, profile_block = split_generated_block(block)
 
@@ -292,7 +303,7 @@ mv "$tmp_config" "$CODEX_CONFIG"
 
 printf "Installed Codex work defaults into %s\n" "$CODEX_CONFIG"
 printf "Backed up previous config to %s\n" "$backup"
-printf "Copied work developer instructions to %s\n" "$INSTALLED_INSTRUCTIONS"
+printf "Copied work Codex AGENTS source to %s\n" "$INSTALLED_AGENTS"
 
 if [[ "$BASE_URL" == "https://YOUR-LITELLM-HOST/v1" || "$MODEL" == "YOUR-LITELLM-MODEL-ALIAS" ]]; then
   printf "\nWARN: Work profile still contains placeholder LiteLLM values.\n" >&2

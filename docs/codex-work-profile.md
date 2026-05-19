@@ -1,7 +1,8 @@
 # Codex Work Profile
 
-The default setup stays personal-neutral. The work profile is opt-in and is
-installed into `~/.codex/config.toml` as a managed block.
+The default setup stays personal-neutral. The work profile is opt-in, installs
+LiteLLM routing into `~/.codex/config.toml` as a managed block, and installs the
+full repo-managed Codex guidance into `~/.codex/AGENTS.md`.
 
 ## Install
 
@@ -18,13 +19,13 @@ The script adds:
 
 - `[model_providers.litellm_work]`
 - `[profiles.work]`
-- work-only `developer_instructions`
+- the full work `~/.codex/AGENTS.md`, including `Additional Instructions`
 
-It also sets the same work provider, model, and developer instructions at the
-top level of `~/.codex/config.toml`, so plain `codex` uses the work setup.
-When those top-level work defaults are installed, stale top-level model context
-window settings from a previous default model are removed instead of being
-silently applied to the work provider.
+It also sets the same work provider and model at the top level of
+`~/.codex/config.toml`, so plain `codex` uses the work setup. When those
+top-level work defaults are installed, stale top-level model context window
+settings from a previous default model are removed instead of being silently
+applied to the work provider.
 
 It does not store an API key.
 
@@ -77,3 +78,6 @@ If you ever need to install only the named profile without changing what plain
 ```bash
 ./scripts/codex-profile.sh work --profile-only
 ```
+
+Codex global guidance is `CODEX_HOME` scoped, not named-profile scoped, so the
+work profile script still installs the full `~/.codex/AGENTS.md` guidance.

@@ -125,20 +125,56 @@ check_omx_plugin_config() {
   fi
 }
 
+check_no_config_developer_instructions() {
+  local config="$HOME/.codex/config.toml"
+
+  if [[ -f "$config" ]] && grep -q 'developer_instructions[[:space:]]*=' "$config"; then
+    printf "miss %s should not contain developer_instructions\n" "$config"
+  else
+    printf "ok   no developer_instructions in %s\n" "$config"
+  fi
+}
+
+check_codex_agents_md() {
+  local agents_path="$HOME/.codex/AGENTS.md"
+  local config="$HOME/.codex/config.toml"
+  local work_default_marker="# BEGIN New-Device-Setup Codex default: work"
+
+  if [[ ! -f "$agents_path" ]]; then
+    printf "miss %s\n" "$agents_path"
+    return
+  fi
+
+  printf "ok   %s\n" "$agents_path"
+
+  if grep -q '<!-- omx:generated:agents-md -->' "$agents_path"; then
+    printf "miss generated OMX AGENTS.md remains at %s\n" "$agents_path"
+  else
+    printf "ok   no generated OMX AGENTS.md\n"
+  fi
+
+  if [[ -f "$config" ]] && grep -q "$work_default_marker" "$config"; then
+    if grep -q '^## Additional Instructions$' "$agents_path"; then
+      printf "ok   work AGENTS.md includes Additional Instructions\n"
+    else
+      printf "miss work AGENTS.md should include Additional Instructions\n"
+    fi
+  else
+    if grep -q '^## Additional Instructions$' "$agents_path"; then
+      printf "miss non-work AGENTS.md should not include Additional Instructions\n"
+    else
+      printf "ok   non-work AGENTS.md omits Additional Instructions\n"
+    fi
+  fi
+}
+
 check_no_omx_native_hooks() {
   local hooks_path="$HOME/.codex/hooks.json"
-  local agents_path="$HOME/.codex/AGENTS.md"
 
   if [[ -f "$hooks_path" ]] && grep -q 'oh-my-codex.*/codex-native-hook\.js' "$hooks_path"; then
     printf "miss OMX native hook commands remain in %s\n" "$hooks_path"
   else
     printf "ok   no OMX native hook commands\n"
-  fi
-
-  if [[ -f "$agents_path" ]] && grep -q '<!-- omx:generated:agents-md -->' "$agents_path"; then
-    printf "miss generated OMX AGENTS.md remains at %s\n" "$agents_path"
-  else
-    printf "ok   no generated OMX AGENTS.md\n"
   fi
 }
 
@@ -166,6 +202,8 @@ check_path "$HOME/Library/Application Support/iTerm2/DynamicProfiles/ac-profiles
 check_codex_feature memories
 check_codex_feature_not_true hooks
 check_codex_feature_not_true goals
+check_no_config_developer_instructions
+check_codex_agents_md
 check_omx_plugin_cache
 check_omx_plugin_config
 check_no_omx_native_hooks
